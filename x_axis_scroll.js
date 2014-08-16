@@ -1,6 +1,5 @@
 ($function(H){
-  var start_extreme_min, start_extreme_max,
-      start_min, start_max,
+    var start_extreme_min, start_extreme_max,
       start_x_pos,
       start_min_timestamp, start_max_timestamp,
       old_dist,
@@ -32,25 +31,32 @@
       //get the distance between the first click X position and the max of the xAxis
       old_dist = start_extreme_max - start_x_pos;
     }
-
     proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
 
 
   //This method wraps highchart's drag event
   H.wrap(H.Pointer.prototype,'drag',function(proceed){
-     //Check if 
+     //Check if user is draggin within the series range
      if( arguments[1].chartY > your_chart.plotSizeY && arguments[1].chartY < your_chart.chartHeight){
+      /*
+        Scaling Logic
+        -------------
+        1. Get distance of current mouse position from the current chart's leftmost pixel value
+        2. calculate a ratio based off the original click distance and the new click distance
+        3. Apply the ratio to the distance in time values and substract from the current view's max
+      */
       var new_x_pos = arguments[1].chartX;
       var new_dist = start_extreme_max - new_x_pos;
-      var ratio =  new_dist / old_dist;
-      var new_min_timestamp = start_extreme_max - old_dist* ratio;
+      var ratio = old_dist / new_dist ;
+      var new_min_timestamp = start_max_timestamp - (start_max_timestamp -start_min_timestamp) * ratio;
 
+
+      //Set new extremes of the chart
       xAxis.setExtremes(new_min_timestamp,start_max_timestamp);
 
      }
     proceed.apply(this, Array.prototype.slice.call(arguments, 1));
   });
-  
 
 }(Highcharts));
